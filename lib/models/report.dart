@@ -10,6 +10,7 @@ class Report {
   final String? taken;
 
   LatLng get latLng => LatLng(coordinates.latitude, coordinates.longitude);
+  int get severity => date.difference(DateTime.now()).inDays * (water ? 3 : 1);
 
   Report.fromMap(String id, Map<String, dynamic> data)
       : id = id,

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -23,6 +24,8 @@ class _HomePageState extends State<HomePage> {
 
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
+  FirebaseAuth get _auth => FirebaseAuth.instance;
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +41,12 @@ class _HomePageState extends State<HomePage> {
 
   _buildAppBar(BuildContext context) => AppBar(
         title: Text("Help Reports"),
+        actions: [
+          IconButton(
+            icon: Text("NGO"),
+            onPressed: _onNgoPressed,
+          ),
+        ],
       );
 
   _buildBody(BuildContext context) => StreamBuilder(
@@ -60,6 +69,7 @@ class _HomePageState extends State<HomePage> {
     return GoogleMap(
       myLocationEnabled: true,
       myLocationButtonEnabled: true,
+      mapToolbarEnabled: false,
       initialCameraPosition: _kGooglePlex,
       zoomControlsEnabled: false,
       onMapCreated: _onMapCreated,
@@ -69,10 +79,48 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildReportPage(BuildContext context) => ReportPage();
 
+  Widget _buildRoutesPage(BuildContext context) => Container(); //TODO
+
+  Widget _buildLoginDialog(BuildContext context) {
+    final _emailController = TextEditingController();
+    final _passwordController = TextEditingController();
+    return AlertDialog(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _emailController,
+            decoration: InputDecoration(hintText: "Email"),
+            keyboardType: TextInputType.emailAddress,
+          ),
+          TextField(
+            controller: _emailController,
+            decoration: InputDecoration(hintText: "Password"),
+            keyboardType: TextInputType.emailAddress,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text("Cancel"),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop([
+            _emailController.text,
+            _passwordController.text,
+          ]),
+          child: Text("Login"),
+        ),
+      ],
+    );
+  }
+
   Marker _markerFor(Report report) => Marker(
         markerId: MarkerId(report.id),
         position: report.latLng,
         onTap: () => _onReportTap(report),
+        icon: _iconFor(report),
       );
 
   void _centerPositionToUser() async {
@@ -98,11 +146,44 @@ class _HomePageState extends State<HomePage> {
     showModalBottomSheet(
       context: context,
       builder: (context) => ReportWidget(report: report),
+      backgroundColor: Colors.transparent,
     );
   }
 
   _onMapCreated(GoogleMapController controller) {
     _mapControllerCompleter.complete(controller);
+  }
+
+  _onNgoPressed() async {
+    var user = _auth.currentUser;
+    if (user == null || user.isAnonymous) {
+      final List<String>? credentials = await showDialog(
+        context: context,
+        builder: _buildLoginDialog,
+      );
+      if (credentials != null) {
+        final userCredential = await _auth.signInWithEmailAndPassword(
+          email: credentials.first,
+          password: credentials.last,
+        );
+        user = userCredential.user;
+      }
+    }
+    if (user == null || user.isAnonymous) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: _buildRoutesPage),
+    );
+  }
+
+  BitmapDescriptor _iconFor(Report report) {
+    final severity = report.severity;
+    if (severity > 5)
+      return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+    else if (severity > 3)
+      return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow);
+    else
+      return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
   }
 
   Future<Position?> _getCurrentePosition() async {

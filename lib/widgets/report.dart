@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:zero_hunger/models/report.dart';
 
 class ReportWidget extends StatelessWidget {
+  static final _formatter = DateFormat.yMMMd();
+
   final Report report;
 
   const ReportWidget({
@@ -11,12 +14,18 @@ class ReportWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
+        margin: EdgeInsets.all(8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        elevation: 4,
+        clipBehavior: Clip.antiAlias,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
               leading: Icon(Icons.date_range),
-              title: Text(report.date.toString()),
+              title: Text("Last meal on: " + _formatter.format(report.date)),
             ),
             ListTile(
               leading: Icon(
