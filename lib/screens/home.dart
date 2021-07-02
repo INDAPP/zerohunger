@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:zero_hunger/models/report.dart';
 import 'package:zero_hunger/screens/report.dart';
+import 'package:zero_hunger/widgets/report.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -17,6 +20,8 @@ class _HomePageState extends State<HomePage> {
   );
 
   Completer<GoogleMapController> _mapControllerCompleter = Completer();
+
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
   @override
   void initState() {
@@ -35,12 +40,12 @@ class _HomePageState extends State<HomePage> {
         title: Text("Help Reports"),
       );
 
-  _buildBody(BuildContext context) => GoogleMap(
-        myLocationEnabled: true,
-        myLocationButtonEnabled: true,
-        initialCameraPosition: _kGooglePlex,
-        zoomControlsEnabled: false,
-        onMapCreated: _onMapCreated,
+  _buildBody(BuildContext context) => StreamBuilder(
+        stream: _firestore
+            .collection('reports')
+            .snapshots()
+            .map(Report.parseQuerySnapshot),
+        builder: _buildMap,
       );
 
   _buildFab(BuildContext context) => FloatingActionButton.extended(
@@ -49,7 +54,26 @@ class _HomePageState extends State<HomePage> {
         icon: Icon(Icons.flag),
       );
 
+  Widget _buildMap(BuildContext context, AsyncSnapshot<List<Report>> snapshot) {
+    final reports = snapshot.data ?? [];
+    final markers = reports.map(_markerFor).toSet();
+    return GoogleMap(
+      myLocationEnabled: true,
+      myLocationButtonEnabled: true,
+      initialCameraPosition: _kGooglePlex,
+      zoomControlsEnabled: false,
+      onMapCreated: _onMapCreated,
+      markers: markers,
+    );
+  }
+
   Widget _buildReportPage(BuildContext context) => ReportPage();
+
+  Marker _markerFor(Report report) => Marker(
+        markerId: MarkerId(report.id),
+        position: report.latLng,
+        onTap: () => _onReportTap(report),
+      );
 
   void _centerPositionToUser() async {
     final position = await _getCurrentePosition();
@@ -67,6 +91,13 @@ class _HomePageState extends State<HomePage> {
   _onHelpPressed() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: _buildReportPage),
+    );
+  }
+
+  _onReportTap(Report report) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => ReportWidget(report: report),
     );
   }
 
