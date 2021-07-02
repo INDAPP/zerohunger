@@ -7,7 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:zero_hunger/models/report.dart';
 import 'package:zero_hunger/screens/report.dart';
-import 'package:zero_hunger/screens/routes.dart';
+import 'package:zero_hunger/screens/route.dart';
 import 'package:zero_hunger/widgets/report.dart';
 
 class HomePage extends StatefulWidget {
@@ -24,12 +24,18 @@ class _HomePageState extends State<HomePage> {
   Completer<GoogleMapController> _mapControllerCompleter = Completer();
 
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
-
   FirebaseAuth get _auth => FirebaseAuth.instance;
+
+  late Stream<List<Report>> _reportStream;
 
   @override
   void initState() {
     super.initState();
+    _reportStream = _firestore
+        .collection('reports')
+        .snapshots()
+        .map(Report.parseQuerySnapshot);
+
     _centerPositionToUser();
   }
 
@@ -51,10 +57,7 @@ class _HomePageState extends State<HomePage> {
       );
 
   _buildBody(BuildContext context) => StreamBuilder(
-        stream: _firestore
-            .collection('reports')
-            .snapshots()
-            .map(Report.parseQuerySnapshot),
+        stream: _reportStream,
         builder: _buildMap,
       );
 
@@ -80,7 +83,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildReportPage(BuildContext context) => ReportPage();
 
-  Widget _buildRoutesPage(BuildContext context) => RoutesPage(
+  Widget _buildRoutesPage(BuildContext context) => RoutePage(
         user: _auth.currentUser!,
       );
 
