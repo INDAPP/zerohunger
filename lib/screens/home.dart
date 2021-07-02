@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:zero_hunger/models/report.dart';
 import 'package:zero_hunger/screens/report.dart';
+import 'package:zero_hunger/screens/routes.dart';
 import 'package:zero_hunger/widgets/report.dart';
 
 class HomePage extends StatefulWidget {
@@ -79,7 +80,9 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildReportPage(BuildContext context) => ReportPage();
 
-  Widget _buildRoutesPage(BuildContext context) => Container(); //TODO
+  Widget _buildRoutesPage(BuildContext context) => RoutesPage(
+        user: _auth.currentUser!,
+      );
 
   Widget _buildLoginDialog(BuildContext context) {
     final _emailController = TextEditingController();
@@ -94,9 +97,9 @@ class _HomePageState extends State<HomePage> {
             keyboardType: TextInputType.emailAddress,
           ),
           TextField(
-            controller: _emailController,
+            controller: _passwordController,
             decoration: InputDecoration(hintText: "Password"),
-            keyboardType: TextInputType.emailAddress,
+            obscureText: true,
           ),
         ],
       ),
