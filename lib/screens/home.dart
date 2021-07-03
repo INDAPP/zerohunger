@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:zero_hunger/constants.dart';
 import 'package:zero_hunger/models/report.dart';
 import 'package:zero_hunger/screens/report.dart';
 import 'package:zero_hunger/screens/route.dart';
@@ -157,6 +158,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   _onMapCreated(GoogleMapController controller) {
+    //controller.setMapStyle(google_maps_style);
     _mapControllerCompleter.complete(controller);
   }
 

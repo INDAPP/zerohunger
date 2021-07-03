@@ -12,6 +12,8 @@ import 'package:zero_hunger/models/report.dart';
 import 'package:zero_hunger/models/route.dart';
 import 'package:zero_hunger/widgets/report.dart';
 
+import '../constants.dart';
+
 class RoutePage extends StatefulWidget {
   final User user;
 
@@ -267,6 +269,7 @@ class _RoutePageState extends State<RoutePage> {
   }
 
   _onMapCreated(GoogleMapController controller, RouteModel route) {
+    //controller.setMapStyle(google_maps_style);
     final bounds = LatLngBounds(
         southwest: route.southwest?.latLng ?? LatLng(0, 0),
         northeast: route.northeast?.latLng ?? LatLng(0, 0));
