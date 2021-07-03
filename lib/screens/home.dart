@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
   FirebaseAuth get _auth => FirebaseAuth.instance;
 
-  late Stream<List<Report>> _reportStream;
+  late Stream<List<ReportModel>> _reportStream;
 
   @override
   void initState() {
@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
     _reportStream = _firestore
         .collection('reports')
         .snapshots()
-        .map(Report.parseQuerySnapshot);
+        .map(ReportModel.parseQuerySnapshot);
 
     _centerPositionToUser();
   }
@@ -67,7 +67,7 @@ class _HomePageState extends State<HomePage> {
         icon: Icon(Icons.flag),
       );
 
-  Widget _buildMap(BuildContext context, AsyncSnapshot<List<Report>> snapshot) {
+  Widget _buildMap(BuildContext context, AsyncSnapshot<List<ReportModel>> snapshot) {
     final reports = snapshot.data ?? [];
     final markers = reports.map(_markerFor).toSet();
     return GoogleMap(
@@ -122,11 +122,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Marker _markerFor(Report report) => Marker(
+  Marker _markerFor(ReportModel report) => Marker(
         markerId: MarkerId(report.id),
         position: report.latLng,
         onTap: () => _onReportTap(report),
-        icon: _iconFor(report),
+        icon: report.icon,
       );
 
   void _centerPositionToUser() async {
@@ -148,7 +148,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  _onReportTap(Report report) {
+  _onReportTap(ReportModel report) {
     showModalBottomSheet(
       context: context,
       builder: (context) => ReportWidget(report: report),
@@ -180,16 +180,6 @@ class _HomePageState extends State<HomePage> {
     Navigator.of(context).push(
       MaterialPageRoute(builder: _buildRoutesPage),
     );
-  }
-
-  BitmapDescriptor _iconFor(Report report) {
-    final severity = report.severity;
-    if (severity > 5)
-      return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
-    else if (severity > 3)
-      return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow);
-    else
-      return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
   }
 
   Future<Position?> _getCurrentePosition() async {

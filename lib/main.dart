@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_directions_api/google_directions_api.dart';
@@ -7,7 +8,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp();
-  DirectionsService.init("AIzaSyA3hn_UnY7nWc0nE5kY3Te_XRgi6YQ5e1w");
+
+  final defaultConfig = await FirebaseFirestore.instance
+      .collection('configs')
+      .doc('default')
+      .get();
+  final directionsApiKey = defaultConfig.data()?['DirectionsApiKey'] ?? "";
+
+  DirectionsService.init(directionsApiKey);
 
   runApp(MyApp());
 }

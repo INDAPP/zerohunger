@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-class Report {
+class ReportModel {
   final String id;
   final GeoPoint coordinates;
   final DateTime date;
@@ -10,10 +10,21 @@ class Report {
   final String? taken;
 
   LatLng get latLng => LatLng(coordinates.latitude, coordinates.longitude);
-  int get severity => date.difference(DateTime.now()).inDays * (water ? 3 : 1);
+  int get severity => DateTime.now().difference(date).inDays * (water ? 3 : 1);
   String get locationString => "${coordinates.latitude} ${coordinates.longitude}";
 
-  Report.fromMap(String id, Map<String, dynamic> data)
+  BitmapDescriptor get icon {
+    final severity = this.severity;
+    if (severity > 5)
+      return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+    else if (severity > 3)
+      return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow);
+    else
+      return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+  }
+
+
+  ReportModel.fromMap(String id, Map<String, dynamic> data)
       : id = id,
         coordinates = data['coordinates'],
         date = data['date']?.toDate(),
@@ -21,12 +32,12 @@ class Report {
         water = data['water'],
         taken = data['taken'];
 
-  static List<Report> parseQuerySnapshot(
+  static List<ReportModel> parseQuerySnapshot(
           QuerySnapshot<Map<String, dynamic>>? snapshot) =>
-      snapshot?.docs.map(Report.parseDocumentSnapshot).toList() ?? [];
+      snapshot?.docs.map(ReportModel.parseDocumentSnapshot).toList() ?? [];
 
-  static Report parseDocumentSnapshot(
+  static ReportModel parseDocumentSnapshot(
       QueryDocumentSnapshot<Map<String, dynamic>> doc) {
-    return Report.fromMap(doc.id, doc.data());
+    return ReportModel.fromMap(doc.id, doc.data());
   }
 }
