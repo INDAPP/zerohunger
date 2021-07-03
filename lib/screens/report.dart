@@ -46,7 +46,8 @@ class _ReportPageState extends State<ReportPage> {
       padding: const EdgeInsets.all(16.0),
       child: Container(
         child: Column(children: [
-          Text('Your position: $_currentPosition'),
+          Text('Your position'),
+          Text('$_currentPosition'),
 
           SizedBox(height: 16,),
 
