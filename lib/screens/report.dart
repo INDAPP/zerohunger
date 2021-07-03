@@ -1,9 +1,10 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter/scheduler.dart' show timeDilation;
 
 class ReportPage extends StatefulWidget {
   @override
@@ -15,6 +16,7 @@ class _ReportPageState extends State<ReportPage> {
   DateTime selectedDate = DateTime.now();
   late StreamSubscription<Position> _positionSubscription;
   Position? _currentPosition;
+  bool _water = false;
 
 
   @override
@@ -56,9 +58,7 @@ class _ReportPageState extends State<ReportPage> {
           SizedBox(height: 8,),
 
           ElevatedButton(
-            onPressed: () {
-              _pickDate;
-            },
+            onPressed: () => _pickDate(context),
             child: Text("Pick Date"),
           ),
 
@@ -67,10 +67,10 @@ class _ReportPageState extends State<ReportPage> {
           CheckboxListTile(
             title: Text('Need Water?'),
             activeColor: Colors.deepOrangeAccent,
-            value: timeDilation != 1.0,
+            value: _water,
             onChanged: (bool? value) {
               setState(() {
-                timeDilation = value! ? 2.0 : 1.0;
+                _water = value == true;
               });
             },
           ),
@@ -121,9 +121,22 @@ class _ReportPageState extends State<ReportPage> {
       });
   }
 
-  void _sendRequest() {
-    final navigator = Navigator.of(context);
-    navigator.pop();
+  void _sendRequest() async {
+    //TODO: se l'utente non è autenticato, fare il login anonimo
+    // if (FirebaseAuth.instance.currentUser == null)
+    //   final user = await FirebaseAuth.instance.signInAnonymously();
+    //
+    // final data = {
+    //   "coordinates": GeoPoint(latitude, longitude),
+    //   "date": selectedDate,
+    //   "people": _currentValue,
+    //   "water": _water,
+    //   "taken": null,
+    // };
+    //
+    // await FirebaseFirestore.instance.collection('reports').doc(user.user.uid).set(data);
+    //
+    // Navigator.of(context).pop();
   }
 
 
