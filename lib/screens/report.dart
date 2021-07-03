@@ -1,14 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:numberpicker/numberpicker.dart';
+import 'package:flutter/scheduler.dart' show timeDilation;
+
+int _currentValue = 2;
+DateTime selectedDate = DateTime.now();
+//late StreamSubscription<Position> _positionSubscription;
 
 class ReportPage extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() => _ReportPageState();
-
 }
 
 class _ReportPageState extends State<ReportPage> {
   @override
-  Widget build(BuildContext context) => Scaffold();
+  Widget build(BuildContext context) =>
+      Scaffold(
+        appBar: _buildAppBar(context),
+        body: _buildBody(context),
+      );
+
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
+      title: Text("Help Request"),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    return Container(
+      child: Column(children: [/*
+        Row(
+          children:[
+
+          ]
+        ),*/
+        SizedBox(height: 16,),
+        Text('When was your last meal?'),
+        SizedBox(height: 8,),
+        ElevatedButton(
+          onPressed: () {
+            // _pickDate();
+          },
+          child: Text("Pick Date"),
+        ),
+        SizedBox(height: 16,),
+        CheckboxListTile(
+          title: Text('Need Water?'),
+          activeColor: Colors.deepOrangeAccent,
+          value: timeDilation != 1.0,
+          onChanged: (bool? value) {
+            setState(() {
+              timeDilation = value! ? 2.0 : 1.0;
+            });
+          },
+        ),
+        SizedBox(height: 16,),
+        Text(
+          'Select the number of people needing food: $_currentValue',
+        ),
+        SizedBox(height: 8,),
+        NumberPicker(
+          minValue: 1,
+          maxValue: 20,
+          step: 1,
+          axis: Axis.horizontal,
+          itemHeight: 60,
+          value: _currentValue,
+          onChanged: (value) => setState(() => _currentValue = value),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.deepOrangeAccent),
+          ),
+        ),
+        SizedBox(height: 16,),
+        TextButton(
+          child: Text("Send Request"),
+          onPressed: _sendRequest,
+        ),
+      ]),
+    );
+  }
+
+  _pickDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2021, 1, 1),
+      lastDate: DateTime(2031, 1, 1),
+    );
+    if(picked != null && picked != selectedDate)
+      setState(() {
+        selectedDate = picked;
+      });
+  }
+
+  void _sendRequest() {
+    final navigator = Navigator.of(context);
+    navigator.pop();
+  }
 
 }
+
