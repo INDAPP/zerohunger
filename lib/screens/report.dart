@@ -20,7 +20,7 @@ class _ReportPageState extends State<ReportPage> {
 
 
   @override
-  void initState(){
+  void initState() {
     _positionSubscription =
         Geolocator.getPositionStream().listen(_onPositionUpdate);
   }
@@ -45,28 +45,40 @@ class _ReportPageState extends State<ReportPage> {
 
   Widget _buildBody(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.fromLTRB(15, 30, 15, 20),
       child: Container(
         child: Column(children: [
-          Text('Your position'),
+          Text(
+            'Your position',
+            style: Theme
+                .of(context).textTheme.bodyText1,
+          ),
+          SizedBox(height: 16,),
           Text('$_currentPosition'),
 
+          SizedBox(height: 24,),
+
+          Text(
+            'Last registered meal:',
+            style: Theme.of(context).textTheme.bodyText1,
+          ),
           SizedBox(height: 16,),
-
-          Text('When was your last meal?'),
-
-          SizedBox(height: 8,),
-
-          ElevatedButton(
-            onPressed: () => _pickDate(context),
-            child: Text("Pick Date"),
+          Text(
+            '$selectedDate'
           ),
 
           SizedBox(height: 16,),
 
+          ElevatedButton(
+            onPressed: () => _pickDate(context),
+            child: Text("PICK DATE"),
+          ),
+
+          SizedBox(height: 24,),
+
           CheckboxListTile(
-            title: Text('Need Water?'),
-            activeColor: Colors.deepOrangeAccent,
+            title: Text('Water Demand', style: Theme.of(context).textTheme.bodyText1,),
+            activeColor: Colors.green,
             value: _water,
             onChanged: (bool? value) {
               setState(() {
@@ -78,10 +90,10 @@ class _ReportPageState extends State<ReportPage> {
           SizedBox(height: 16,),
 
           Text(
-            'Select the number of people needing food: $_currentValue',
+            'People in need: $_currentValue',
           ),
 
-          SizedBox(height: 8,),
+          SizedBox(height: 16,),
 
           NumberPicker(
             minValue: 1,
@@ -93,14 +105,14 @@ class _ReportPageState extends State<ReportPage> {
             onChanged: (value) => setState(() => _currentValue = value),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.deepOrangeAccent),
+              border: Border.all(color: Colors.green),
             ),
           ),
 
-          SizedBox(height: 16,),
+          SizedBox(height: 32,),
 
-          TextButton(
-            child: Text("Send Request"),
+          ElevatedButton(
+            child: Text("SEND REQUEST"),
             onPressed: _sendRequest,
           ),
         ]),
@@ -113,9 +125,9 @@ class _ReportPageState extends State<ReportPage> {
       context: context,
       initialDate: selectedDate,
       firstDate: DateTime(2021, 1, 1),
-      lastDate: DateTime(2031, 1, 1),
+      lastDate: DateTime.now(),
     );
-    if(picked != null && picked != selectedDate)
+    if (picked != null && picked != selectedDate)
       setState(() {
         selectedDate = picked;
       });
@@ -123,22 +135,27 @@ class _ReportPageState extends State<ReportPage> {
 
   void _sendRequest() async {
     //TODO: se l'utente non è autenticato, fare il login anonimo
-    // if (FirebaseAuth.instance.currentUser == null)
-    //   final user = await FirebaseAuth.instance.signInAnonymously();
-    //
-    // final data = {
-    //   "coordinates": GeoPoint(latitude, longitude),
-    //   "date": selectedDate,
-    //   "people": _currentValue,
-    //   "water": _water,
-    //   "taken": null,
-    // };
-    //
-    // await FirebaseFirestore.instance.collection('reports').doc(user.user.uid).set(data);
-    //
-    // Navigator.of(context).pop();
-  }
+    if (FirebaseAuth.instance.currentUser == null)
+      final user = await FirebaseAuth.instance.signInAnonymously();
 
+    if (_currentPosition != null) {
+      final data = {
+        "coordinates": GeoPoint(
+            _currentPosition!.latitude, _currentPosition!.longitude),
+        "date": selectedDate,
+        "people": _currentValue,
+        "water": _water,
+        "taken": null,
+      };
+    }
+    else {
+      print('Impossibile trovare la posizione!');
+    }
+
+    //  await FirebaseFirestore.instance.collection('reports').doc(user.user.uid).set(data);
+
+    Navigator.of(context).pop();
+  }
 
   void _onPositionUpdate(Position position) {
     setState(() {

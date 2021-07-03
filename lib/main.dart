@@ -30,6 +30,33 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.green,
         primaryColor: Color(0xFFB8CC6A),
         accentColor: Color(0xFF3C693D),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            textStyle: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+            ),
+            shape: StadiumBorder(),
+            minimumSize: Size(170, 50),
+          )
+        ),
+        textTheme: TextTheme(
+
+          bodyText1: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.green,
+          ),
+          bodyText2: TextStyle(
+            fontSize: 16,
+
+          ),
+         /* headline4: TextStyle(
+            fontSize: 36,
+            fontWeight: FontWeight.w700,
+            color: Color(0xfff4a045),
+          ),*/
+        ),
       ),
       home: HomePage(),
     );
