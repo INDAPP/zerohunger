@@ -18,11 +18,11 @@ class _ReportPageState extends State<ReportPage> {
   Position? _currentPosition;
   bool _water = false;
 
-
   @override
   void initState() {
     _positionSubscription =
         Geolocator.getPositionStream().listen(_onPositionUpdate);
+    super.initState();
   }
 
   @override
@@ -31,8 +31,7 @@ class _ReportPageState extends State<ReportPage> {
     super.dispose();
   }
 
-  Widget build(BuildContext context) =>
-      Scaffold(
+  Widget build(BuildContext context) => Scaffold(
         appBar: _buildAppBar(context),
         body: _buildBody(context),
       );
@@ -50,51 +49,62 @@ class _ReportPageState extends State<ReportPage> {
         child: Column(children: [
           Text(
             'Your position',
-            style: Theme
-                .of(context).textTheme.bodyText1,
+            style: Theme.of(context).textTheme.bodyText1,
           ),
-          SizedBox(height: 16,),
-          Text('$_currentPosition'),
-
-          SizedBox(height: 24,),
-
+          SizedBox(
+            height: 16,
+          ),
+          _currentPosition == null
+              ? CircularProgressIndicator()
+              : Text('$_currentPosition'),
+          SizedBox(
+            height: 24,
+          ),
           Text(
             'Last registered meal:',
             style: Theme.of(context).textTheme.bodyText1,
           ),
-          SizedBox(height: 16,),
-          Text(
-            '$selectedDate'
+          SizedBox(
+            height: 16,
           ),
-
-          SizedBox(height: 16,),
-
+          Text('$selectedDate'),
+          SizedBox(
+            height: 16,
+          ),
           ElevatedButton(
             onPressed: () => _pickDate(context),
             child: Text("PICK DATE"),
           ),
-
-          SizedBox(height: 24,),
-
-          CheckboxListTile(
-            title: Text('Water Demand', style: Theme.of(context).textTheme.bodyText1,),
-            activeColor: Colors.green,
-            value: _water,
-            onChanged: (bool? value) {
-              setState(() {
-                _water = value == true;
-              });
-            },
+          SizedBox(
+            height: 24,
           ),
-
-          SizedBox(height: 16,),
-
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Water Demand',
+                style: Theme.of(context).textTheme.bodyText1,
+              ),
+              Checkbox(
+                value: _water,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _water = value == true;
+                  });
+                },
+                activeColor: Colors.green,
+              )
+            ],
+          ),
+          SizedBox(
+            height: 16,
+          ),
           Text(
             'People in need: $_currentValue',
           ),
-
-          SizedBox(height: 16,),
-
+          SizedBox(
+            height: 16,
+          ),
           NumberPicker(
             minValue: 1,
             maxValue: 20,
@@ -108,9 +118,9 @@ class _ReportPageState extends State<ReportPage> {
               border: Border.all(color: Colors.green),
             ),
           ),
-
-          SizedBox(height: 32,),
-
+          SizedBox(
+            height: 32,
+          ),
           ElevatedButton(
             child: Text("SEND REQUEST"),
             onPressed: _sendRequest,
@@ -135,26 +145,38 @@ class _ReportPageState extends State<ReportPage> {
 
   void _sendRequest() async {
     //TODO: se l'utente non è autenticato, fare il login anonimo
+    String resultMessage;
     if (FirebaseAuth.instance.currentUser == null)
-      final user = await FirebaseAuth.instance.signInAnonymously();
+      await FirebaseAuth.instance.signInAnonymously();
 
     if (_currentPosition != null) {
       final data = {
-        "coordinates": GeoPoint(
-            _currentPosition!.latitude, _currentPosition!.longitude),
+        "coordinates":
+            GeoPoint(_currentPosition!.latitude, _currentPosition!.longitude),
         "date": selectedDate,
         "people": _currentValue,
         "water": _water,
         "taken": null,
       };
-    }
-    else {
-      print('Impossibile trovare la posizione!');
-    }
+      await FirebaseFirestore.instance
+          .collection('reports')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .set(data);
 
-    //  await FirebaseFirestore.instance.collection('reports').doc(user.user.uid).set(data);
+      resultMessage = "Success";
+    } else {
+      print('Impossibile trovare la posizione!');
+      resultMessage = "Request Failed";
+    }
 
     Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: Theme.of(context).accentColor,
+      elevation: 10.0,
+      content: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Text('$resultMessage'),
+      ]),
+    ));
   }
 
   void _onPositionUpdate(Position position) {
@@ -163,4 +185,3 @@ class _ReportPageState extends State<ReportPage> {
     });
   }
 }
-
